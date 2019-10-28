@@ -1,0 +1,24 @@
+#!/bin/bash
+
+FIREFOX_PROFILE=$(ls ~/.mozilla/firefox/ | grep -E '\.default$')
+PROFILE_DB=~/.mozilla/firefox/${FIREFOX_PROFILE}/places.sqlite
+TMP=/tmp/firefox_profile
+
+SQL="SELECT COALESCE(b.title || ' | ' || p.url, p.url) FROM moz_bookmarks b JOIN moz_places p ON b.fk = p.id WHERE b.fk is not null AND p.url <> '' AND url NOT LIKE 'place:%' AND url NOT LIKE 'javascript:%' ORDER BY b.parent"
+
+if [ -z "${FIREFOX_PROFILE}" ]; then
+	echo "FIREFOX_PROFILE not set"
+	exit 1
+fi
+
+cp -f ${PROFILE_DB} ${TMP}
+
+RESULTS=$(sqlite3 ${TMP} "${SQL}" | fzf --reverse --inline-info -m)
+
+IFS=$'\n'
+for result in $RESULTS; do
+	IFS=' | '
+	read -ra ADDR <<<"$result"
+	echo Opening ${result}
+	xdg-open ${ADDR[-1]}
+done

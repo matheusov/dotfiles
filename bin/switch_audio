@@ -1,0 +1,97 @@
+#!/usr/bin/python3
+
+import subprocess
+import re
+from sys import exit
+
+
+def query_sink():
+    sinks_result = subprocess.check_output(["pacmd", "list-sinks"]).decode()
+
+    sinks_result = re.findall(r'(\*?) index: (\d+)[\s\S]+?alsa\.name = "(.+)"',
+                              sinks_result, re.MULTILINE)
+
+    sinks = []
+    for sink in sinks_result:
+        d_sink = {}
+        d_sink['default'] = sink[0] == '*'
+        d_sink['index'] = sink[1]
+        d_sink['name'] = sink[2]
+        sinks.append(d_sink)
+
+    return sinks
+
+
+def select_sink(sinks):
+    options = ""
+    for sink in sinks:
+        options += f"{sink['index']}: {sink['name']}\n"
+
+    try:
+        sink_selected = subprocess.check_output(
+            ['rofi', '-dmenu', '-i', '-p', 'Sink', 'lines', '2'], input=options, universal_newlines=True)
+    except Exception as e:
+        print(f"Error: {e}")
+        exit()
+
+    sink_selected = sink_selected.replace("\n", "")
+    return sink_selected
+
+
+def query_sink_inputs():
+    sink_inputs_result = subprocess.check_output(
+        ["pacmd", "list-sink-inputs"]).decode()
+
+    sink_inputs_result = re.findall(
+        r'index: (\d+)[\s\S]+?application\.name = "(.+)"', sink_inputs_result, re.MULTILINE)
+
+    sink_inputs = []
+    for sink_input in sink_inputs_result:
+        d_sink_input = {}
+        d_sink_input['index'] = sink_input[0]
+        d_sink_input['name'] = sink_input[1]
+        sink_inputs.append(d_sink_input)
+    return sink_inputs
+
+
+def select_sink_input(sink_inputs):
+    options = "All\n"
+    for sink_input in sink_inputs:
+        options += f"{sink_input['index']}: {sink_input['name']}\n"
+
+    try:
+        sink_input_selected = subprocess.check_output(
+            ['rofi', '-dmenu', '-i', '-p', 'Application'], input=options, universal_newlines=True)
+    except Exception as e:
+        print(f"Error: {e}")
+        exit()
+
+    sink_input_selected = sink_input_selected.replace("\n", "")
+    return sink_input_selected
+
+
+def apply_choices(sinks, sink_inputs, selected_sink, selected_inputs):
+    for sink in sinks:
+        if selected_sink == f"{sink['index']}: {sink['name']}":
+            print(f"{sink['index']}: {sink['name']} DEFAULT")
+            subprocess.call(['pacmd', 'set-default-sink', sink['index']])
+            selected_sink_index = sink['index']
+            break
+
+    for sink_input in sink_inputs:
+        if selected_inputs == "All" or selected_inputs == f"{sink_input['index']}: {sink_input['name']}":
+            print(f"SINK {selected_sink_index} <== {sink_input['name']}")
+            subprocess.call(
+                ['pacmd', 'move-sink-input', sink_input['index'], selected_sink_index])
+
+
+def main():
+    sinks = query_sink()
+    selected_sink = select_sink(sinks)
+    sink_inputs = query_sink_inputs()
+    selected_inputs = select_sink_input(sink_inputs)
+    apply_choices(sinks, sink_inputs, selected_sink, selected_inputs)
+
+
+if __name__ == '__main__':
+    main()
