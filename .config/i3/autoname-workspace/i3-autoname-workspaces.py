@@ -19,6 +19,7 @@ WINDOW_ICONS = {
     "urxvt": "",
     "kitty": "",
     "notion": "",
+    "okular": "",
     "sqlitebrowser": "",
     "telegram-desktop": "",
     "thunderbird": "",

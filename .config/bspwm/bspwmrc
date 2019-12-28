@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Monitor settings
+#bspc monitor DVI-D-0 -d 2 9 10
+#bspc monitor HDMI-0 -d 3 4 5 6 7 8
+bspc monitor HDMI-0 -d 1 2 3 4 5 6
+bspc monitor DVI-D-0 -d 7 8 9 0
+
+# Window settings
+bspc config border_width 2
+bspc config window_gap 12
+
+bspc config split_ratio 0.52
+bspc config borderless_monocle true
+bspc config gapless_monocle true
+bspc config focus_follows_pointer true
+
+# Window rules
+bspc rule -a firefox desktop='^2'
+bspc rule -a code-oss desktop='^3'
+bspc rule -a TelegramDesktop desktop='^8'
+bspc rule -a Thunderbird desktop='^9'
+bspc rule -a keepassxc desktop='^10'
+bspc rule -a KeePassXC state=tiled
+
+# bspc rule -a Gimp desktop='^8' state=floating follow=on
+# bspc rule -a Chromium desktop='^2'
+# bspc rule -a mplayer2 state=floating
+# bspc rule -a Kupfer.py focus=on
+# bspc rule -a Screenkey manage=off
+bspc rule -a Rofi state=floating
+
+## Startup
+
+# Hotkey Daemon
+pkill sxhkd
+sxhkd &
+
+# Fix Cusor On Desktop
+xsetroot -cursor_name left_ptr
+
+# Bar
+~/.config/polybar/launch.sh
+
+# Wallpaper
+feh --bg-scale ~/Nextcloud/Pictures/Wallpapers/c5ed959cacdb17added034c031c21055.jpg
+
+# Compositor
+pkill compton
+compton -b
+
+# Notifications
+pkill dunst
+dunst &
+
+# Redshift
+pkill redshift
+# redshift 2>&1 >/dev/null || notify "Failed to start redshift\!" --urgent
+redshift -x 2>&1 >/dev/null || notify-send "Failed to start redshift\!" -u critical
+
+# CopyQ
+pkill copyq
+copyq &
+
+# syncthing
+pkill syncthing
+syncthing &
+
+# telegram
+pkill telegram-desktop
+telegram-desktop &
+
+# aw-qt
+pkill aw-qt
+aw-qt &
+
+setxkbmap -layout us -variant intl
