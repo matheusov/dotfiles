@@ -1,6 +1,6 @@
-#=================================================================================
+#===============================================================================
 #	Plasma Integration
-#=================================================================================
+#===============================================================================
 
 # Try to kill the wallpaper set by Plasma (it takes up the entire workspace
 # and hides everythiing)
@@ -29,9 +29,21 @@ for_window [window_role="About"] floating enable
 for_window [window_type="dialog"] floating enable
 for_window [window_type="menu"] floating enable
 
-#=================================================================================
+#===============================================================================
+#	Monitors
+#===============================================================================
+
+set $display1 HDMI-0
+set $display2 DVI-D-0
+
+workspace 2 output $display1
+workspace 3 output $display1
+workspace 8 output $display2
+workspace 10 output $display2
+
+#===============================================================================
 #	Configs
-#=================================================================================
+#===============================================================================
 
 set $mod Mod4
 
@@ -104,6 +116,9 @@ bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
+
+# Toggle between stacking/tabbed/splith/splitv:
+bindsym $mod+x layout toggle all
 
 # change focus between tiling / floating windows
 bindsym $mod+space focus mode_toggle
@@ -210,9 +225,9 @@ mode "$mode_workspaces_monitors" {
 }
 bindcode $mod+58 mode $mode_workspaces_monitors
 
-#=================================================================================
+#===============================================================================
 #	Appearance
-#=================================================================================
+#===============================================================================
 
 # Theme colors
 set $bg-color            #2f343f
@@ -221,7 +236,7 @@ set $text-color          #f3f4f5
 set $inactive-text-color #676E7D
 set $urgent-bg-color     #E53935
 
-# class                   border  backgr. text    indic.   child_border
+# class                 border  backgr. text    indic.    child_border
 client.focused          #4c7899 #285577 #ffffff #2e9ef4   #285577
 client.focused_inactive #333333 #5f676a #ffffff #484e50   #5f676a
 client.unfocused        #333333 #222222 #888888 #292d2e   #222222
@@ -240,9 +255,9 @@ bindsym $mod+y border none
 bindsym $mod+u border pixel 1
 bindsym $mod+i border normal
 
-#=================================================================================
+#===============================================================================
 #	i3-gaps
-#=================================================================================
+#===============================================================================
 
 # Set inner/outer gaps
 gaps inner 5
@@ -260,17 +275,15 @@ new_window pixel 1
 new_float pixel 0
 hide_edge_borders both
 
-#=================================================================================
+#===============================================================================
 #	Programs
-#=================================================================================
+#===============================================================================
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 # bar {
 #         status_command i3status
 # }
-
-set_from_resource $bg i3wm.color1 #285577
 
 # bar
 bar {
@@ -280,7 +293,7 @@ bar {
         background #000000
         separator #ffffff
         #                  border             background         text
-        focused_workspace  $bg                $bg                #ffffff
+        focused_workspace  $bg-color          $bg-color          #ffffff
         inactive_workspace #000000            #000000            $inactive-text-color
         urgent_workspace   $urgent-bg-color   $urgent-bg-color   #ffffff
     }
@@ -333,16 +346,9 @@ bindsym --release Num_Lock  exec pkill -SIGRTMIN+11 i3blocks
 # Specific window configuration
 assign [class="firefox"] workspace number 2
 assign [class="code-oss"] workspace number 3
-assign [class="sublime_text"] workspace number 3
-assign [class="telegram-desktop"] workspace number 8
 assign [class="TelegramDesktop"] workspace number 8
-assign [class="Thunderbird"] workspace number 9
+assign [class="Thunderbird"] workspace number 8
 assign [class="keepassxc" title="NewDatabase.kdbx - KeePassXC"] workspace number 10
-
-workspace 2 output HDMI-0
-workspace 3 output HDMI-0
-workspace 8 output DVI-D-0
-workspace 10 output DVI-D-0
 
 for_window [class="keepassxc"] floating enable
 for_window [class="keepassxc" title="NewDatabase.kdbx \[Locked\] - KeePassXC"] floating enable move resize set 724 455
@@ -371,9 +377,11 @@ bindsym $mod+l exec "kitty tty-clock -S -c -r -f '%A, %B %d'"
 
 bindsym $mod+Shift+Return exec kitty -d "$(xcwd)"
 
-#=================================================================================
+#===============================================================================
 #	Startup
-#=================================================================================
+#===============================================================================
+
+exec --no-startup-id "i3-msg 'workspace 8; append_layout ~/.config/i3/workspace-8.json'"
 
 exec --no-startup-id feh --bg-scale ~/Nextcloud/Pictures/Wallpapers/c5ed959cacdb17added034c031c21055.jpg
 exec --no-startup-id compton
@@ -382,10 +390,14 @@ exec --no-startup-id "setxkbmap -layout us -variant intl"
 exec --no-startup-id flashfocus
 exec --no-startup-id redshift
 exec --no-startup-id copyq
-exec --no-startup-id aw-qt
 exec --no-startup-id telegram-desktop
+exec --no-startup-id thunderbird
 exec --no-startup-id syncthing
-exec --no-startup-id wal -R
+exec --no-startup-id "sh -c 'sleep 10; exec aw-qt'"
+#exec --no-startup-id wal -R
 
 # exec_always --no-startup-id $HOME/.config/polybar/launch.sh
-exec_always ~/.config/i3/autoname-workspace/i3-autoname-workspaces.py &
+# exec_always ~/.config/i3/autoname-workspace/i3-autoname-workspaces.py &
+
+exec --no-startup-id xautolock -time 5 -locker "i3lock -c 111111" -notify 30 -notifier "notify-send -u critical -t 10000 'Locking screen in 30 seconds'" -corners "-000"
+exec --no-startup-id xautolock -time 10 -locker "systemctl suspend" -corners "-000"
